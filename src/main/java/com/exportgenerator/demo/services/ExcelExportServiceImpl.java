@@ -19,6 +19,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Service implementation for exporting data to Excel.
+ */
 @Service
 public class ExcelExportServiceImpl implements ExcelExportService {
 
@@ -43,6 +46,12 @@ public class ExcelExportServiceImpl implements ExcelExportService {
         return POKEMON_NAMES;
     }
 
+    /**
+     * Exports data to an Excel file and writes it to the HTTP response.
+     *
+     * @param response the HTTP response
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     public void exportToExcel(HttpServletResponse response) throws IOException {
         String fileName = "data_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
@@ -63,6 +72,13 @@ public class ExcelExportServiceImpl implements ExcelExportService {
         workbook.close();
     }
 
+    /**
+     * Builds the Excel export by creating sheets and populating rows.
+     *
+     * @param workbook     the workbook
+     * @param rowsPerSheet the number of rows per sheet
+     * @param sheetNames   the names of the sheets
+     */
     void buildExport(Workbook workbook, int rowsPerSheet, String[] sheetNames) {
         for (int sheetIndex = 0; sheetIndex < 5; sheetIndex++) {
             Sheet sheet = workbook.createSheet(sheetNames[sheetIndex]);
