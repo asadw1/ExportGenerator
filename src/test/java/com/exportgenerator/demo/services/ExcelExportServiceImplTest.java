@@ -2,6 +2,8 @@ package com.exportgenerator.demo.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,9 +16,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +52,37 @@ public class ExcelExportServiceImplTest {
         verify(response, times(1)).getOutputStream();
         Workbook workbook = new SXSSFWorkbook();
         assertNotNull(workbook);
+    }
+
+    @Test
+    public void testBuildExport() {
+        Workbook workbook = new SXSSFWorkbook();
+        int rowsPerSheet = 20000;
+        String[] sheetNames = { "Data_Sheet1", "Data_Sheet2", "Data_Sheet3", "Data_Sheet4", "Data_Sheet5" };
+
+        excelExportService.buildExport(workbook, rowsPerSheet, sheetNames);
+
+        assertEquals(5, workbook.getNumberOfSheets());
+
+        for (int sheetIndex = 0; sheetIndex < 5; sheetIndex++) {
+            Sheet sheet = workbook.getSheetAt(sheetIndex);
+            assertNotNull(sheet);
+            assertEquals(sheetNames[sheetIndex], sheet.getSheetName());
+
+            Row headerRow = sheet.getRow(0);
+            assertNotNull(headerRow);
+            assertEquals("ID", headerRow.getCell(0).getStringCellValue());
+            assertEquals("Name", headerRow.getCell(1).getStringCellValue());
+            assertEquals("Value", headerRow.getCell(2).getStringCellValue());
+
+            for (int rowIndex = 1; rowIndex <= rowsPerSheet; rowIndex++) {
+                Row row = sheet.getRow(rowIndex);
+                assertNotNull(row);
+                assertEquals(rowIndex + (sheetIndex * rowsPerSheet), (int) row.getCell(0).getNumericCellValue());
+                assertEquals("Name " + (rowIndex + (sheetIndex * rowsPerSheet)), row.getCell(1).getStringCellValue());
+                assertEquals("Value " + (rowIndex + (sheetIndex * rowsPerSheet)), row.getCell(2).getStringCellValue());
+            }
+        }
     }
 
     // Helper class to mock ServletOutputStream
