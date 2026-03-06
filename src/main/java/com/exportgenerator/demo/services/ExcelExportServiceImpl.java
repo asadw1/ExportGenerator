@@ -54,6 +54,16 @@ public class ExcelExportServiceImpl implements ExcelExportService {
         int rowsPerSheet = totalRows / 5;
         String[] sheetNames = { "Data_Sheet1", "Data_Sheet2", "Data_Sheet3", "Data_Sheet4", "Data_Sheet5" };
 
+        buildExport(workbook, rowsPerSheet, sheetNames);
+
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
+        workbook.write(response.getOutputStream());
+        workbook.close();
+    }
+
+    void buildExport(Workbook workbook, int rowsPerSheet, String[] sheetNames) {
         for (int sheetIndex = 0; sheetIndex < 5; sheetIndex++) {
             Sheet sheet = workbook.createSheet(sheetNames[sheetIndex]);
             Row headerRow = sheet.createRow(0);
@@ -108,11 +118,5 @@ public class ExcelExportServiceImpl implements ExcelExportService {
                 }
             }
         }
-
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-
-        workbook.write(response.getOutputStream());
-        workbook.close();
     }
 }
