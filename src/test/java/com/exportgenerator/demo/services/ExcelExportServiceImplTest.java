@@ -30,11 +30,13 @@ public class ExcelExportServiceImplTest {
     @InjectMocks
     private ExcelExportServiceImpl excelExportService;
 
+    private List<String> pokemonNames;
+
     @BeforeEach
     public void setUp() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         try (InputStream inputStream = getClass().getResourceAsStream("/pokemon_names.json")) {
-            List<String> pokemonNames = objectMapper.readValue(inputStream, new TypeReference<List<String>>() {
+            pokemonNames = objectMapper.readValue(inputStream, new TypeReference<List<String>>() {
             });
             ExcelExportServiceImpl.getPokemonNames().clear();
             ExcelExportServiceImpl.getPokemonNames().addAll(pokemonNames);
@@ -82,6 +84,73 @@ public class ExcelExportServiceImplTest {
                 assertEquals("Name " + (rowIndex + (sheetIndex * rowsPerSheet)), row.getCell(1).getStringCellValue());
                 assertEquals("Value " + (rowIndex + (sheetIndex * rowsPerSheet)), row.getCell(2).getStringCellValue());
             }
+        }
+    }
+
+    @Test
+    public void testCreateHeaderRow() {
+        Workbook workbook = new SXSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Test_Sheet");
+
+        excelExportService.createHeaderRow(sheet);
+
+        Row headerRow = sheet.getRow(0);
+        assertNotNull(headerRow);
+        assertEquals("ID", headerRow.getCell(0).getStringCellValue());
+        assertEquals("Name", headerRow.getCell(1).getStringCellValue());
+        assertEquals("Value", headerRow.getCell(2).getStringCellValue());
+
+        for (int i = 0; i < 10; i++) {
+            assertEquals("StartDate_" + (char) ('A' + i), headerRow.getCell(3 + i).getStringCellValue());
+        }
+
+        assertEquals("PokemonName", headerRow.getCell(13).getStringCellValue());
+
+        for (int i = 0; i < 4; i++) {
+            assertEquals("Email_" + (i + 1), headerRow.getCell(14 + i).getStringCellValue());
+        }
+
+        assertEquals("Country", headerRow.getCell(18).getStringCellValue());
+        assertEquals("City", headerRow.getCell(19).getStringCellValue());
+        assertEquals("State", headerRow.getCell(20).getStringCellValue());
+        assertEquals("Zipcode", headerRow.getCell(21).getStringCellValue());
+
+        for (int i = 0; i < 8; i++) {
+            assertEquals("Misc_" + (i + 1), headerRow.getCell(22 + i).getStringCellValue());
+        }
+    }
+
+    @Test
+    public void testPopulateRow() {
+        Workbook workbook = new SXSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Test_Sheet");
+        Row row = sheet.createRow(1);
+        LocalDateTime utcNow = LocalDateTime.now(ZoneOffset.UTC);
+
+        int rowIndex = 1;
+        excelExportService.populateRow(row, rowIndex, utcNow);
+
+        assertEquals(rowIndex, (int) row.getCell(0).getNumericCellValue());
+        assertEquals("Name " + rowIndex, row.getCell(1).getStringCellValue());
+        assertEquals("Value " + rowIndex, row.getCell(2).getStringCellValue());
+
+        for (int j = 0; j < 10; j++) {
+            assertEquals(utcNow.format(DateTimeFormatter.ISO_DATE), row.getCell(3 + j).getStringCellValue());
+        }
+
+        assertEquals(pokemonNames.get((rowIndex - 1) % pokemonNames.size()), row.getCell(13).getStringCellValue());
+
+        for (int j = 0; j < 4; j++) {
+            assertEquals("email" + rowIndex + "_" + (j + 1) + "@example.com", row.getCell(14 + j).getStringCellValue());
+        }
+
+        assertEquals("Country " + rowIndex, row.getCell(18).getStringCellValue());
+        assertEquals("City " + rowIndex, row.getCell(19).getStringCellValue());
+        assertEquals("State " + rowIndex, row.getCell(20).getStringCellValue());
+        assertEquals("Zipcode " + rowIndex, row.getCell(21).getStringCellValue());
+
+        for (int j = 0; j < 8; j++) {
+            assertEquals("Misc " + rowIndex + "_" + (j + 1), row.getCell(22 + j).getStringCellValue());
         }
     }
 

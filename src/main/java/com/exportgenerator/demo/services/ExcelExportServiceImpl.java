@@ -41,7 +41,11 @@ public class ExcelExportServiceImpl implements ExcelExportService {
         // Empty constructor
     }
 
-    // Package-private getter for POKEMON_NAMES
+    /**
+     * Getter for POKEMON_NAMES.
+     *
+     * @return the list of Pokémon names
+     */
     static List<String> getPokemonNames() {
         return POKEMON_NAMES;
     }
@@ -82,57 +86,78 @@ public class ExcelExportServiceImpl implements ExcelExportService {
     void buildExport(Workbook workbook, int rowsPerSheet, String[] sheetNames) {
         for (int sheetIndex = 0; sheetIndex < 5; sheetIndex++) {
             Sheet sheet = workbook.createSheet(sheetNames[sheetIndex]);
-            Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("ID");
-            headerRow.createCell(1).setCellValue("Name");
-            headerRow.createCell(2).setCellValue("Value");
-
-            // Add additional date columns
-            for (int i = 0; i < 10; i++) {
-                headerRow.createCell(3 + i).setCellValue("StartDate_" + (char) ('A' + i));
-            }
-
-            // Add PokemonName column
-            headerRow.createCell(13).setCellValue("PokemonName");
-
-            // Add email address columns
-            for (int i = 0; i < 4; i++) {
-                headerRow.createCell(14 + i).setCellValue("Email_" + (i + 1));
-            }
-
-            // Add location columns
-            headerRow.createCell(18).setCellValue("Country");
-            headerRow.createCell(19).setCellValue("City");
-            headerRow.createCell(20).setCellValue("State");
-            headerRow.createCell(21).setCellValue("Zipcode");
-
-            // Add misc columns
-            for (int i = 0; i < 8; i++) {
-                headerRow.createCell(22 + i).setCellValue("Misc_" + (i + 1));
-            }
+            createHeaderRow(sheet);
 
             LocalDateTime utcNow = LocalDateTime.now(ZoneOffset.UTC);
+
             for (int i = 1; i <= rowsPerSheet; i++) {
                 int rowIndex = i + (sheetIndex * rowsPerSheet);
                 Row row = sheet.createRow(i);
-                row.createCell(0).setCellValue(rowIndex);
-                row.createCell(1).setCellValue("Name " + rowIndex);
-                row.createCell(2).setCellValue("Value " + rowIndex);
-                for (int j = 0; j < 10; j++) {
-                    row.createCell(3 + j).setCellValue(utcNow.format(DateTimeFormatter.ISO_DATE));
-                }
-                row.createCell(13).setCellValue(POKEMON_NAMES.get((rowIndex - 1) % POKEMON_NAMES.size()));
-                for (int j = 0; j < 4; j++) {
-                    row.createCell(14 + j).setCellValue("email" + rowIndex + "_" + (j + 1) + "@example.com");
-                }
-                row.createCell(18).setCellValue("Country " + rowIndex);
-                row.createCell(19).setCellValue("City " + rowIndex);
-                row.createCell(20).setCellValue("State " + rowIndex);
-                row.createCell(21).setCellValue("Zipcode " + rowIndex);
-                for (int j = 0; j < 8; j++) {
-                    row.createCell(22 + j).setCellValue("Misc " + rowIndex + "_" + (j + 1));
-                }
+                populateRow(row, rowIndex, utcNow);
             }
+        }
+    }
+
+    /**
+     * Creates the header row in the given sheet.
+     *
+     * @param sheet the sheet where the header row will be created
+     */
+    void createHeaderRow(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("ID");
+        headerRow.createCell(1).setCellValue("Name");
+        headerRow.createCell(2).setCellValue("Value");
+
+        for (int i = 0; i < 10; i++) {
+            headerRow.createCell(3 + i).setCellValue("StartDate_" + (char) ('A' + i));
+        }
+
+        headerRow.createCell(13).setCellValue("PokemonName");
+
+        for (int i = 0; i < 4; i++) {
+            headerRow.createCell(14 + i).setCellValue("Email_" + (i + 1));
+        }
+
+        headerRow.createCell(18).setCellValue("Country");
+        headerRow.createCell(19).setCellValue("City");
+        headerRow.createCell(20).setCellValue("State");
+        headerRow.createCell(21).setCellValue("Zipcode");
+
+        for (int i = 0; i < 8; i++) {
+            headerRow.createCell(22 + i).setCellValue("Misc_" + (i + 1));
+        }
+    }
+
+    /**
+     * Populates a row with the given data.
+     *
+     * @param row      the row to populate
+     * @param rowIndex the index of the row
+     * @param utcNow   the current date and time in UTC
+     */
+    void populateRow(Row row, int rowIndex, LocalDateTime utcNow) {
+        row.createCell(0).setCellValue(rowIndex);
+        row.createCell(1).setCellValue("Name " + rowIndex);
+        row.createCell(2).setCellValue("Value " + rowIndex);
+
+        for (int j = 0; j < 10; j++) {
+            row.createCell(3 + j).setCellValue(utcNow.format(DateTimeFormatter.ISO_DATE));
+        }
+
+        row.createCell(13).setCellValue(POKEMON_NAMES.get((rowIndex - 1) % POKEMON_NAMES.size()));
+
+        for (int j = 0; j < 4; j++) {
+            row.createCell(14 + j).setCellValue("email" + rowIndex + "_" + (j + 1) + "@example.com");
+        }
+
+        row.createCell(18).setCellValue("Country " + rowIndex);
+        row.createCell(19).setCellValue("City " + rowIndex);
+        row.createCell(20).setCellValue("State " + rowIndex);
+        row.createCell(21).setCellValue("Zipcode " + rowIndex);
+
+        for (int j = 0; j < 8; j++) {
+            row.createCell(22 + j).setCellValue("Misc " + rowIndex + "_" + (j + 1));
         }
     }
 }
